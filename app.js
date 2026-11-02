@@ -350,7 +350,10 @@ document.querySelector('#signup-form').addEventListener('submit', async event =>
 		const { data, error } = await supabaseClient.auth.signUp({
 			email,
 			password,
-			options: { data: { nickname } }
+			options: {
+				data: { nickname },
+				emailRedirectTo: new URL(window.location.pathname, window.location.origin).toString()
+			}
 		});
 		if (error) throw error;
 		if (data.session) {
