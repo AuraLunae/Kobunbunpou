@@ -5,6 +5,7 @@ const tabs = [...document.querySelectorAll('.tab')];
 const courseCards = [...document.querySelectorAll('.course-card')];
 const QUESTION_COUNT = 10;
 const STATS_KEY = 'kobun-quiz-stats';
+const DAILY_KEY = 'kobunbunpou-daily-counts';
 const authMessage = document.querySelector('#auth-message');
 const validCategories = ['particles', 'auxiliaries'];
 let kind = 'particles';
@@ -57,6 +58,37 @@ function loadStats() {
 }
 
 const stats = loadStats();
+
+// ===== ポータル連携用：日別の回答数（日本時間の日付ごと。1問答えるたびに+1） =====
+let dailyMemory = {};
+
+function jstDay(ms) {
+	return new Date(ms + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+function loadDailyCounts() {
+	try {
+		const parsed = JSON.parse(localStorage.getItem(DAILY_KEY) || '{}');
+		if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+	} catch (error) {
+		return { ...dailyMemory };
+	}
+	return {};
+}
+
+function recordAnswer() {
+	const days = loadDailyCounts();
+	const today = jstDay(Date.now());
+	days[today] = (Number.isInteger(days[today]) && days[today] >= 0 ? days[today] : 0) + 1;
+	Object.keys(days).sort().slice(0, -400).forEach(day => { delete days[day]; });
+	dailyMemory = days;
+	try {
+		localStorage.setItem(DAILY_KEY, JSON.stringify(days));
+	} catch (error) {
+		console.error('日別の回答数を保存できませんでした。', error);
+	}
+	if (window.PortalClient) window.PortalClient.kick();
+}
 
 function renderStats() {
 	document.querySelectorAll('[data-best-kind]').forEach(record => {
@@ -253,6 +285,7 @@ async function selectAnswer(selected) {
 			selected_index: question.choiceOrder[selected]
 		});
 		score = result.score;
+		recordAnswer();
 		buttons.forEach((button, displayedIndex) => {
 			const originalIndex = question.choiceOrder[displayedIndex];
 			if (originalIndex === result.correct_index) button.classList.add('correct');
@@ -435,3 +468,20 @@ if (!window.SUPABASE_URL || !window.SUPABASE_PUBLISHABLE_KEY) {
 }
 
 renderStats();
+
+// ===== テンシ ポータル連携（失敗してもクイズ本体は動かす） =====
+try {
+	if (!window.PortalClient) throw new Error('portal-client.js を読み込めませんでした。');
+	window.PortalClient.init({
+		url: window.PORTAL_SUPABASE_URL,
+		key: window.PORTAL_SUPABASE_PUBLISHABLE_KEY,
+		site: 'kobunbunpou',
+		syncRpc: 'kobunbunpou_sync_daily',
+		rankRpc: 'kobunbunpou_get_ranking',
+		getDailyCounts: async () => loadDailyCounts()
+	});
+	window.PortalClient.mountLinkBox('#portal-link');
+} catch (error) {
+	console.error('ポータル連携を開始できませんでした。', error);
+	document.querySelector('#portal-card').hidden = true;
+}
