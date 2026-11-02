@@ -161,6 +161,12 @@
 					<div><h3>連続学習日数</h3><ol id="streak-ranking"><li>読み込み待ち</li></ol></div>
 				</div>
 			</section>
+			<section class="card account-card" aria-labelledby="portal-title">
+				<h2 id="portal-title">テンシポータルと連携</h2>
+				<p class="home-note">ポータル連携後に回答した問題数を、日別に同期します。正解・不正解を問わず1問の回答を1回として数えます。回答内容やメールアドレスは送信しません。</p>
+				<p id="portal-message" class="auth-message" role="status">ポータル連携の設定を確認しています。</p>
+				<div id="portal-link"></div>
+			</section>
 		</section>
 		<div id="quiz-view" hidden>
 			<div class="quiz-toolbar"><button class="back-button" id="home-button">← トップへ戻る</button></div>
@@ -174,6 +180,8 @@
 	<script src="quizzes.js"></script>
 	<script src="supabase-config.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	<script src="portal-config.js"></script>
+	<script src="portal-client.js"></script>
 	<script src="app.js"></script>
 </body>
 </html>

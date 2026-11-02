@@ -5,7 +5,9 @@ const tabs = [...document.querySelectorAll('.tab')];
 const courseCards = [...document.querySelectorAll('.course-card')];
 const QUESTION_COUNT = 10;
 const STATS_KEY = 'kobun-quiz-stats';
+const DAILY_ANSWER_COUNTS_KEY = 'kobun-daily-answer-counts';
 const authMessage = document.querySelector('#auth-message');
+const portalMessage = document.querySelector('#portal-message');
 const validCategories = ['particles', 'auxiliaries'];
 let kind = 'particles';
 let index = 0;
@@ -66,6 +68,36 @@ function renderStats() {
 		currentProfile ? `${currentProfile.cumulative_correct}問` : '--問';
 	document.querySelector('#streak-count').textContent =
 		currentProfile ? `${currentProfile.current_streak}日` : '--日';
+}
+
+function getDailyAnswerCounts() {
+	const saved = localStorage.getItem(DAILY_ANSWER_COUNTS_KEY);
+	if (saved === null) return {};
+	const counts = JSON.parse(saved);
+	if (!counts || typeof counts !== 'object' || Array.isArray(counts)) {
+		throw new Error('日別回答数の保存データが正しくありません。');
+	}
+	for (const [day, count] of Object.entries(counts)) {
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isInteger(count) || count < 0) {
+			throw new Error('日別回答数の保存データが正しくありません。');
+		}
+	}
+	return counts;
+}
+
+function recordDailyAnswer() {
+	try {
+		const counts = getDailyAnswerCounts();
+		const todayInJapan = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+		counts[todayInJapan] = (counts[todayInJapan] || 0) + 1;
+		const recentCounts = Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)).slice(-400));
+		localStorage.setItem(DAILY_ANSWER_COUNTS_KEY, JSON.stringify(recentCounts));
+		if (window.PortalClient?.state.enabled) window.PortalClient.kick();
+	} catch (error) {
+		portalMessage.textContent = '日別回答数を端末に保存できませんでした。ブラウザーの保存設定をご確認ください。';
+		portalMessage.classList.add('error');
+		console.error('ポータル連携用の日別回答数を保存できませんでした。', error);
+	}
 }
 
 function saveStats() {
@@ -252,6 +284,7 @@ async function selectAnswer(selected) {
 			expected_position: index,
 			selected_index: question.choiceOrder[selected]
 		});
+		recordDailyAnswer();
 		score = result.score;
 		buttons.forEach((button, displayedIndex) => {
 			const originalIndex = question.choiceOrder[displayedIndex];
@@ -350,7 +383,10 @@ document.querySelector('#signup-form').addEventListener('submit', async event =>
 		const { data, error } = await supabaseClient.auth.signUp({
 			email,
 			password,
-			options: { data: { nickname } }
+			options: {
+				data: { nickname },
+				emailRedirectTo: new URL(window.location.pathname, window.location.origin).toString()
+			}
 		});
 		if (error) throw error;
 		if (data.session) {
@@ -411,14 +447,14 @@ courseCards.forEach(card => card.addEventListener('click', () => showQuiz(card.d
 document.querySelector('#home-button').addEventListener('click', showHome);
 tabs.forEach(tab => tab.addEventListener('click', () => showQuiz(tab.dataset.kind)));
 
-if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+if (!window.SUPABASE_URL || !window.SUPABASE_PUBLISHABLE_KEY) {
 	setAuthMessage('Supabase接続設定が未完了です。SUPABASE_SETUP.mdの手順に沿って設定してください。', true);
 	setRankingMessage('Supabase接続設定後にランキングを表示します');
 } else if (!window.supabase?.createClient) {
 	setAuthMessage('Supabaseクライアントを読み込めませんでした。インターネット接続をご確認ください。', true);
 	setRankingMessage('ランキングを読み込めませんでした');
 } else {
-	supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+	supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_PUBLISHABLE_KEY);
 	supabaseClient.auth.onAuthStateChange((_event, session) => {
 		handleSession(session);
 	});
@@ -429,6 +465,40 @@ if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
 		}
 		handleSession(data.session);
 	});
+}
+
+if (!window.PORTAL_SUPABASE_URL || !window.PORTAL_SUPABASE_PUBLISHABLE_KEY) {
+	portalMessage.textContent = 'ポータル運営からSupabase URLとpublishable keyを受け取った後、portal-config.jsに設定してください。';
+} else if (!window.PortalClient) {
+	portalMessage.textContent = 'ポータル連携クライアントを読み込めませんでした。ページを再読み込みしてください。';
+	portalMessage.classList.add('error');
+	console.error('portal-client.js が読み込まれていません。');
+} else {
+	try {
+		window.PortalClient.init({
+			url: window.PORTAL_SUPABASE_URL,
+			key: window.PORTAL_SUPABASE_PUBLISHABLE_KEY,
+			site: window.PORTAL_SITE_ID,
+			syncRpc: `${window.PORTAL_SITE_ID}_sync_daily`,
+			rankRpc: `${window.PORTAL_SITE_ID}_get_ranking`,
+			getDailyCounts: () => {
+				try {
+					return getDailyAnswerCounts();
+				} catch (error) {
+					portalMessage.textContent = '日別回答数を読み込めませんでした。ブラウザーの保存データをご確認ください。';
+					portalMessage.classList.add('error');
+					console.error('ポータル連携用の日別回答数を読み込めませんでした。', error);
+					throw error;
+				}
+			}
+		});
+		window.PortalClient.mountLinkBox('#portal-link');
+		portalMessage.textContent = '連携すると、以後の回答数をテンシポータルへ同期します。';
+	} catch (error) {
+		portalMessage.textContent = `ポータル設定に問題があります: ${error.message}`;
+		portalMessage.classList.add('error');
+		console.error('テンシポータル連携を初期化できませんでした。', error);
+	}
 }
 
 renderStats();
