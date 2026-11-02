@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>古文文法クイズ｜助詞・助動詞</title>
+	<style>
+		:root { color-scheme: light; --ink: #263445; --muted: #64748b; --paper: #fff; --line: #e2e8f0; --accent: #6d5bd0; --soft: #f3f1ff; }
+		* { box-sizing: border-box; }
+		[hidden] { display: none !important; }
+		body { margin: 0; min-height: 100vh; background: #f5f7fb; color: var(--ink); font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif; line-height: 1.7; }
+		header { padding: 38px 20px 30px; text-align: center; background: linear-gradient(135deg, #5749b8, #8978e8); color: white; }
+		header p { margin: 5px 0 0; opacity: .88; }
+		h1 { margin: 0; font-size: clamp(1.55rem, 5vw, 2.2rem); }
+		main { width: min(860px, calc(100% - 32px)); margin: 28px auto 60px; }
+		.home { display: grid; gap: 24px; }
+		.welcome { padding: clamp(24px, 6vw, 46px); text-align: center; background: linear-gradient(145deg, #fff, #f8f7ff); }
+		.eyebrow { margin: 0 0 8px; color: var(--accent); font-size: .88rem; font-weight: 800; letter-spacing: .08em; }
+		.welcome h2 { margin: 0; font-size: clamp(1.7rem, 5vw, 2.45rem); line-height: 1.4; }
+		.welcome-copy { max-width: 520px; margin: 12px auto 0; color: var(--muted); }
+		.highlights { display: flex; justify-content: center; gap: clamp(24px, 8vw, 72px); margin-top: 28px; }
+		.highlight { display: grid; gap: 1px; color: var(--muted); font-size: .88rem; }
+		.highlight strong { color: var(--ink); font-size: 1.3rem; }
+		.section-title { margin: 0; font-size: 1.2rem; }
+		.course-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+		.course-card { display: grid; justify-items: start; gap: 8px; padding: 22px; text-align: left; border: 1px solid var(--line); border-radius: 16px; background: white; color: var(--ink); box-shadow: 0 8px 26px #2634450a; transition: .15s; }
+		.course-card:hover { border-color: var(--accent); box-shadow: 0 10px 28px #5749b81a; transform: translateY(-2px); }
+		.course-icon { font-size: 1.7rem; }
+		.course-name { font-size: 1.2rem; font-weight: 800; }
+		.course-description, .course-meta { color: var(--muted); font-size: .9rem; }
+		.course-record { color: var(--muted); font-size: .9rem; }
+		.course-record strong { color: var(--accent); }
+		.course-link { margin-top: 6px; color: var(--accent); font-weight: 800; }
+		.streak-card { display: flex; align-items: center; justify-content: center; gap: 12px; }
+		.streak-card strong { color: var(--accent); font-size: 1.35rem; }
+		.streak-card .home-note { margin: 0; }
+		.home-note { margin: -8px 0 0; text-align: center; color: var(--muted); font-size: .88rem; }
+		.quiz-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+		.back-button { padding: 5px 0; border: 0; background: transparent; color: var(--muted); font-weight: 700; }
+		.back-button:hover { color: var(--accent); }
+		.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+		button { font: inherit; cursor: pointer; }
+		.tab { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--muted); font-weight: 700; }
+		.tab.active { border-color: var(--accent); background: var(--soft); color: var(--accent); }
+		.card { padding: clamp(20px, 5vw, 34px); border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 8px 26px #2634450a; }
+		.progress-row { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .9rem; }
+		.track { height: 7px; margin: 9px 0 25px; overflow: hidden; border-radius: 9px; background: #edf0f5; }
+		.bar { width: 10%; height: 100%; background: var(--accent); transition: width .2s; }
+		.question { margin: 0 0 8px; font-size: 1.22rem; }
+		.sentence { margin: 0 0 22px; color: var(--muted); }
+		.blank { color: var(--accent); font-weight: 800; }
+		.choices { display: grid; gap: 10px; }
+		.choice { padding: 12px 15px; text-align: left; border: 1px solid var(--line); border-radius: 11px; background: white; color: var(--ink); transition: .15s; }
+		.choice:hover:not(:disabled) { border-color: var(--accent); background: #faf9ff; }
+		.choice:disabled { cursor: default; }
+		.choice.correct { border-color: #27a36a; background: #effaf4; }
+		.choice.wrong { border-color: #df6262; background: #fff3f3; }
+		.feedback { min-height: 48px; margin: 15px 0 0; color: var(--muted); }
+		.feedback strong { color: var(--ink); }
+		.actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+		.primary { padding: 10px 20px; border: 0; border-radius: 10px; background: var(--accent); color: white; font-weight: 700; }
+		.primary:hover { background: #5749b8; }
+		.primary:disabled { opacity: .45; cursor: not-allowed; }
+		.result { text-align: center; }
+		.result h2 { margin: 4px 0; }
+		.score { margin: 10px 0 20px; color: var(--accent); font-size: 2rem; font-weight: 800; }
+		@media (max-width: 560px) { .course-grid { grid-template-columns: 1fr; } .course-card { padding: 18px; } }
+		@media (max-width: 480px) { header { padding: 28px 16px 23px; } main { margin-top: 18px; } .home { gap: 18px; } .highlights { gap: 24px; } }
+	</style>
+</head>
+<body>
+	<header>
+		<h1>古文文法クイズ</h1>
+		<p>助詞・助動詞を、問題を解きながら確認しよう</p>
+	</header>
+	<main>
+		<section class="home" id="home">
+			<div class="card welcome">
+				<p class="eyebrow">古文文法を楽しくマスター</p>
+				<h2>古文のルール、<br>クイズで身につけよう。</h2>
+				<p class="welcome-copy">助詞と助動詞の大切なポイントを、例文と一緒に確認できます。好きなテーマを選んで始めましょう。</p>
+				<div class="highlights" aria-label="クイズの内容">
+					<span class="highlight"><strong id="total-count">200問</strong>全問題数</span>
+					<span class="highlight"><strong>2テーマ</strong>助詞・助動詞</span>
+					<span class="highlight"><strong>1回10問</strong>毎回ランダム</span>
+				</div>
+			</div>
+			<h2 class="section-title">学習するテーマを選ぶ</h2>
+			<div class="course-grid">
+				<button class="course-card" data-start-kind="particles">
+					<span class="course-icon" aria-hidden="true">🌸</span>
+					<span class="course-name">助詞</span>
+					<span class="course-description">係り結びや、文のつながりを確認しよう。</span>
+					<span class="course-meta">全100問から10問出題</span>
+					<span class="course-record">最高記録 <strong data-best-kind="particles">0 / 10問</strong></span>
+					<span class="course-link">助詞のクイズを始める →</span>
+				</button>
+				<button class="course-card" data-start-kind="auxiliaries">
+					<span class="course-icon" aria-hidden="true">📖</span>
+					<span class="course-name">助動詞</span>
+					<span class="course-description">意味や用法を、例文から見分けよう。</span>
+					<span class="course-meta">全100問から10問出題</span>
+					<span class="course-record">最高記録 <strong data-best-kind="auxiliaries">0 / 10問</strong></span>
+					<span class="course-link">助動詞のクイズを始める →</span>
+				</button>
+			</div>
+			<div class="card streak-card">
+				<span>🔥 連続学習日数</span>
+				<strong id="streak-count">0日</strong>
+				<p id="storage-message" class="home-note" role="status" hidden></p>
+			</div>
+			<p class="home-note">最高記録と連続日数は、このブラウザーに保存されます。</p>
+		</section>
+		<div id="quiz-view" hidden>
+			<div class="quiz-toolbar"><button class="back-button" id="home-button">← トップへ戻る</button></div>
+			<nav class="tabs" aria-label="問題の種類">
+				<button class="tab active" data-kind="particles">助詞</button>
+				<button class="tab" data-kind="auxiliaries">助動詞</button>
+			</nav>
+			<section class="card" id="quiz" aria-live="polite"></section>
+		</div>
+	</main>
+	<script src="quizzes.js"></script>
+	<script>
+		const panel = document.querySelector('#quiz');
+		const home = document.querySelector('#home');
+		const quizView = document.querySelector('#quiz-view');
+		const tabs = [...document.querySelectorAll('.tab')];
+		const courseCards = [...document.querySelectorAll('.course-card')];
+		const QUESTION_COUNT = 10;
+		const STATS_KEY = 'kobun-quiz-stats';
+		let kind = 'particles';
+		let index = 0;
+		let score = 0;
+		let answered = false;
+		let sessionQuestions = [];
+
+		const totalQuestions = Object.values(quizzes).reduce((total, questions) => total + questions.length, 0);
+		document.querySelector('#total-count').textContent = `${totalQuestions}問`;
+		const storageMessage = document.querySelector('#storage-message');
+		courseCards.forEach(card => {
+			card.querySelector('.course-meta').textContent = `全${quizzes[card.dataset.startKind].length}問から10問出題`;
+		});
+		tabs.forEach(tab => {
+			tab.textContent = tab.dataset.kind === 'particles' ? '助詞（10問）' : '助動詞（10問）';
+		});
+
+		function createEmptyStats() {
+			return { best: { particles: 0, auxiliaries: 0 }, streak: 0, lastCompletedDate: null };
+		}
+
+		function isValidStats(value) {
+			return value &&
+				value.best &&
+				Number.isInteger(value.best.particles) && value.best.particles >= 0 && value.best.particles <= QUESTION_COUNT &&
+				Number.isInteger(value.best.auxiliaries) && value.best.auxiliaries >= 0 && value.best.auxiliaries <= QUESTION_COUNT &&
+				Number.isInteger(value.streak) && value.streak >= 0 &&
+				(value.lastCompletedDate === null || typeof value.lastCompletedDate === 'string');
+		}
+
+		function showStorageError(action, error) {
+			storageMessage.hidden = false;
+			storageMessage.textContent = `記録の${action}に失敗しました。ブラウザーの保存設定をご確認ください。`;
+			console.error(`クイズ記録の${action}に失敗しました。`, error);
+		}
+
+		function loadStats() {
+			try {
+				const saved = localStorage.getItem(STATS_KEY);
+				if (saved === null) return createEmptyStats();
+				const parsed = JSON.parse(saved);
+				if (isValidStats(parsed)) return parsed;
+				showStorageError('読み込み', new Error('保存データの形式が正しくありません'));
+			} catch (error) {
+				showStorageError('読み込み', error);
+			}
+			return createEmptyStats();
+		}
+
+		const stats = loadStats();
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		if (stats.lastCompletedDate !== localDateKey(new Date()) && stats.lastCompletedDate !== localDateKey(yesterday)) {
+			stats.streak = 0;
+		}
+
+		function renderStats() {
+			document.querySelectorAll('[data-best-kind]').forEach(record => {
+				record.textContent = `${stats.best[record.dataset.bestKind]} / ${QUESTION_COUNT}問`;
+			});
+			document.querySelector('#streak-count').textContent = `${stats.streak}日`;
+		}
+
+		function saveStats() {
+			try {
+				localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+				storageMessage.hidden = true;
+			} catch (error) {
+				showStorageError('保存', error);
+			}
+		}
+
+		function localDateKey(date) {
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const day = String(date.getDate()).padStart(2, '0');
+			return `${year}-${month}-${day}`;
+		}
+
+		function recordCompletion() {
+			stats.best[kind] = Math.max(stats.best[kind], score);
+			const today = localDateKey(new Date());
+			if (stats.lastCompletedDate !== today) {
+				const yesterday = new Date();
+				yesterday.setDate(yesterday.getDate() - 1);
+				stats.streak = stats.lastCompletedDate === localDateKey(yesterday) ? stats.streak + 1 : 1;
+				stats.lastCompletedDate = today;
+			}
+			saveStats();
+			renderStats();
+		}
+
+		function shuffle(items) {
+			const shuffled = [...items];
+			for (let i = shuffled.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+			}
+			return shuffled;
+		}
+
+		function prepareQuestion(question) {
+			const choices = shuffle(question.choices.map((choice, originalIndex) => ({
+				choice,
+				isAnswer: originalIndex === question.answer
+			})));
+			return {
+				...question,
+				choices: choices.map(item => item.choice),
+				answer: choices.findIndex(item => item.isAnswer)
+			};
+		}
+
+		renderStats();
+
+		function render() {
+			if (index >= sessionQuestions.length) {
+				recordCompletion();
+				panel.innerHTML = `<div class="result"><h2>おつかれさまでした！</h2><p>${kind === 'particles' ? '助詞' : '助動詞'}のクイズが終了しました。</p><div class="score">${score} / ${QUESTION_COUNT} 問正解</div><p>このテーマの最高記録：${stats.best[kind]} / ${QUESTION_COUNT} 問</p><p>連続学習：${stats.streak}日</p><button class="primary" id="restart">もう一度挑戦</button></div>`;
+				document.querySelector('#restart').addEventListener('click', startOver);
+				return;
+			}
+			const q = sessionQuestions[index];
+			const highlighted = q.sentence.replace(q.target, `<span class="blank">${q.target}</span>`);
+			panel.innerHTML = `<div class="progress-row"><span>第 ${index + 1} 問 / ${QUESTION_COUNT} 問</span><span>正解 ${score} 問</span></div>
+				<div class="track"><div class="bar" style="width:${(index / QUESTION_COUNT) * 100}%"></div></div>
+				<h2 class="question">${q.ask}</h2><p class="sentence">「${highlighted}」</p>
+				<div class="choices">${q.choices.map((choice, i) => `<button class="choice" data-choice="${i}">${String.fromCharCode(65 + i)}. ${choice}</button>`).join('')}</div>
+				<p class="feedback" id="feedback"></p><div class="actions"><button class="primary" id="next" disabled>${index === QUESTION_COUNT - 1 ? '結果を見る' : '次の問題へ'}</button></div>`;
+			panel.querySelectorAll('.choice').forEach(button => button.addEventListener('click', () => selectAnswer(Number(button.dataset.choice))));
+			document.querySelector('#next').addEventListener('click', () => { index++; answered = false; render(); });
+		}
+
+		function selectAnswer(selected) {
+			if (answered) return;
+			answered = true;
+			const q = sessionQuestions[index];
+			const buttons = panel.querySelectorAll('.choice');
+			buttons.forEach((button, i) => {
+				button.disabled = true;
+				if (i === q.answer) button.classList.add('correct');
+				else if (i === selected) button.classList.add('wrong');
+			});
+			const correct = selected === q.answer;
+			if (correct) score++;
+			document.querySelector('#feedback').innerHTML = `<strong>${correct ? '正解！' : '不正解。正解は「' + q.choices[q.answer] + '」です。'}</strong> ${q.note}`;
+			document.querySelector('#next').disabled = false;
+			panel.querySelector('.progress-row span:last-child').textContent = `正解 ${score} 問`;
+		}
+
+		function startOver() {
+			index = 0;
+			score = 0;
+			answered = false;
+			sessionQuestions = shuffle(quizzes[kind]).slice(0, QUESTION_COUNT).map(prepareQuestion);
+			render();
+		}
+		function showQuiz(selectedKind) {
+			kind = selectedKind;
+			tabs.forEach(tab => {
+				const active = tab.dataset.kind === kind;
+				tab.classList.toggle('active', active);
+				tab.setAttribute('aria-pressed', String(active));
+			});
+			home.hidden = true;
+			quizView.hidden = false;
+			startOver();
+		}
+		function showHome() {
+			quizView.hidden = true;
+			home.hidden = false;
+		}
+		courseCards.forEach(card => card.addEventListener('click', () => showQuiz(card.dataset.startKind)));
+		document.querySelector('#home-button').addEventListener('click', showHome);
+		tabs.forEach(tab => tab.addEventListener('click', () => {
+			showQuiz(tab.dataset.kind);
+		}));
+	</script>
+</body>
+</html>
