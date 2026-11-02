@@ -469,6 +469,93 @@ if (!window.SUPABASE_URL || !window.SUPABASE_PUBLISHABLE_KEY) {
 
 renderStats();
 
+// ポータルの「連携する」ボタンから開かれたときの処理
+//   ・#portal-link=キー … 「連携しますか？」の確認（OK／キャンセル）を出す。キーはすぐURLから消す
+//   ・#portal-link      … キーなし。連携カードを出して、欄に貼り付けてもらう
+const PORTAL_KEY_HASH = /^#portal-link=([0-9A-Fa-f-]{8,64})$/;
+
+function openPortalCard() {
+	const card = document.querySelector('#portal-card');
+	card.hidden = false;
+	if (!quizView.hidden) showHome();
+	setTimeout(() => {
+		card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		document.querySelector('#portal-link input')?.focus({ preventScroll: true });
+	}, 250);
+}
+
+async function runPortalLinkDialog(key) {
+	const dialog = document.querySelector('#portal-confirm');
+	const text = document.querySelector('#portal-confirm-text');
+	const ok = document.querySelector('#portal-confirm-ok');
+	const cancel = document.querySelector('#portal-confirm-cancel');
+	let message = 'テンシ ポータルと連携しますか？ 送られるのは日ごとの回答数だけで、ポータルのランキングに反映されます。';
+	try {
+		const status = await window.PortalClient.linkStatus();
+		if (status && status.linked) {
+			message = `この端末はすでに「${status.nickname || ''}」として連携しています。このキーで連携し直しますか？`;
+		}
+	} catch (error) {
+		console.error('連携の状態を確認できませんでした。', error);
+	}
+	if (typeof dialog.showModal !== 'function') {
+		if (!window.confirm(message)) return;
+		try {
+			await window.PortalClient.link(key);
+			window.PortalClient.syncNow();
+			window.alert('連携しました。ポータルに戻って、画面を更新してください。');
+		} catch (error) {
+			window.alert(`連携できませんでした：${error.message}`);
+		}
+		return;
+	}
+	text.textContent = message;
+	ok.hidden = false;
+	ok.disabled = false;
+	ok.textContent = '連携する';
+	cancel.disabled = false;
+	cancel.textContent = 'キャンセル';
+	await new Promise(resolve => {
+		const finish = () => {
+			dialog.removeEventListener('close', finish);
+			ok.onclick = null;
+			cancel.onclick = null;
+			resolve();
+		};
+		dialog.addEventListener('close', finish);
+		cancel.onclick = () => dialog.close();
+		ok.onclick = async () => {
+			ok.disabled = true;
+			cancel.disabled = true;
+			text.textContent = '連携しています…';
+			try {
+				const result = await window.PortalClient.link(key);
+				window.PortalClient.syncNow();
+				text.textContent = `連携しました（${result?.nickname || ''}）。ポータルに戻って、画面を更新してください。`;
+				ok.hidden = true;
+				cancel.textContent = '閉じる';
+			} catch (error) {
+				text.textContent = `連携できませんでした：${error.message}`;
+				ok.disabled = false;
+				ok.textContent = 'もう一度';
+			}
+			cancel.disabled = false;
+		};
+		dialog.showModal();
+	});
+}
+
+async function handlePortalHash() {
+	const match = PORTAL_KEY_HASH.exec(location.hash);
+	if (match) {
+		const key = match[1];
+		history.replaceState(null, '', location.pathname + location.search);   // キーをURLに残さない
+		await runPortalLinkDialog(key);
+		return;
+	}
+	if (location.hash === '#portal-link') openPortalCard();
+}
+
 // ===== テンシ ポータル連携（失敗してもクイズ本体は動かす） =====
 try {
 	if (!window.PortalClient) throw new Error('portal-client.js を読み込めませんでした。');
@@ -481,6 +568,8 @@ try {
 		getDailyCounts: async () => loadDailyCounts()
 	});
 	window.PortalClient.mountLinkBox('#portal-link');
+	window.addEventListener('hashchange', handlePortalHash);
+	handlePortalHash();
 } catch (error) {
 	console.error('ポータル連携を開始できませんでした。', error);
 	document.querySelector('#portal-card').hidden = true;
