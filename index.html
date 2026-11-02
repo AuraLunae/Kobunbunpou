@@ -34,6 +34,20 @@
 		.streak-card { display: flex; align-items: center; justify-content: center; gap: 12px; }
 		.streak-card strong { color: var(--accent); font-size: 1.35rem; }
 		.streak-card .home-note { margin: 0; }
+		.account-card, .ranking-card { display: grid; gap: 14px; }
+		.account-card h2, .ranking-card h2, .ranking-card h3 { margin: 0; }
+		.account-grid, .ranking-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+		.auth-form { display: grid; gap: 10px; }
+		.auth-form label { display: grid; gap: 4px; color: var(--muted); font-size: .9rem; }
+		.auth-form input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; font: inherit; }
+		.auth-message { min-height: 1.5em; margin: 0; color: var(--muted); font-size: .9rem; }
+		.auth-message.error { color: #b42318; }
+		.auth-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+		.ranking-grid ol { display: grid; gap: 6px; margin: 8px 0 0; padding-left: 1.8rem; }
+		.ranking-grid li { padding-left: 4px; }
+		.rank-score { float: right; color: var(--accent); font-weight: 700; }
+		.metric-row { display: flex; flex-wrap: wrap; gap: 8px 20px; color: var(--muted); }
+		.metric-row strong { color: var(--accent); }
 		.home-note { margin: -8px 0 0; text-align: center; color: var(--muted); font-size: .88rem; }
 		.quiz-toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 		.back-button { padding: 5px 0; border: 0; background: transparent; color: var(--muted); font-weight: 700; }
@@ -57,6 +71,7 @@
 		.choice.wrong { border-color: #df6262; background: #fff3f3; }
 		.feedback { min-height: 48px; margin: 15px 0 0; color: var(--muted); }
 		.feedback strong { color: var(--ink); }
+		.feedback.error { color: #b42318; }
 		.actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 		.primary { padding: 10px 20px; border: 0; border-radius: 10px; background: var(--accent); color: white; font-weight: 700; }
 		.primary:hover { background: #5749b8; }
@@ -70,14 +85,14 @@
 </head>
 <body>
 	<header>
-		<h1>古文文法クイズ</h1>
+		<h1>Dr.Yの古典文法</h1>
 		<p>助詞・助動詞を、問題を解きながら確認しよう</p>
 	</header>
 	<main>
 		<section class="home" id="home">
 			<div class="card welcome">
 				<p class="eyebrow">古文文法を楽しくマスター</p>
-				<h2>古文のルール、<br>クイズで身につけよう。</h2>
+				<h2>古典文法を<br>クイズで身につけよう。</h2>
 				<p class="welcome-copy">助詞と助動詞の大切なポイントを、例文と一緒に確認できます。好きなテーマを選んで始めましょう。</p>
 				<div class="highlights" aria-label="クイズの内容">
 					<span class="highlight"><strong id="total-count">200問</strong>全問題数</span>
@@ -105,11 +120,47 @@
 				</button>
 			</div>
 			<div class="card streak-card">
-				<span>🔥 連続学習日数</span>
-				<strong id="streak-count">0日</strong>
+				<span>累計正解数 <strong id="cumulative-count">--問</strong></span>
+				<span>連続学習日数</span>
+				<strong id="streak-count">--日</strong>
 				<p id="storage-message" class="home-note" role="status" hidden></p>
 			</div>
-			<p class="home-note">最高記録と連続日数は、このブラウザーに保存されます。</p>
+			<p class="home-note">最高記録はこのブラウザー、累計正解数と連続学習日数はオンラインに保存されます。</p>
+			<section class="card account-card" aria-labelledby="account-title">
+				<h2 id="account-title">ランキングに参加</h2>
+				<div id="auth-forms" class="account-grid">
+					<form class="auth-form" id="signup-form">
+						<strong>新規登録</strong>
+						<label>ニックネーム<input name="nickname" minlength="2" maxlength="20" required autocomplete="nickname"></label>
+						<label>メールアドレス<input name="email" type="email" required autocomplete="email"></label>
+						<label>パスワード<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+						<button class="primary" type="submit">アカウントを作成</button>
+					</form>
+					<form class="auth-form" id="login-form">
+						<strong>ログイン</strong>
+						<label>メールアドレス<input name="email" type="email" required autocomplete="email"></label>
+						<label>パスワード<input name="password" type="password" required autocomplete="current-password"></label>
+						<button class="primary" type="submit">ログイン</button>
+					</form>
+				</div>
+				<div id="account-session" hidden>
+					<p class="metric-row"><span id="account-email"></span><span id="account-nickname"></span></p>
+					<form class="auth-form" id="nickname-form" hidden>
+						<label>ランキングに表示するニックネーム<input name="nickname" minlength="2" maxlength="20" required autocomplete="nickname"></label>
+						<button class="primary" type="submit">ニックネームを登録</button>
+					</form>
+					<div class="auth-actions"><button class="back-button" id="logout-button" type="button">ログアウト</button></div>
+				</div>
+				<p id="auth-message" class="auth-message" role="status">Supabaseの設定を確認しています。</p>
+				<p class="home-note">メールアドレスは公開されません。ランキングにはニックネームのみ表示されます。</p>
+			</section>
+			<section class="card ranking-card" aria-labelledby="ranking-title">
+				<h2 id="ranking-title">オンラインランキング</h2>
+				<div id="ranking-content" class="ranking-grid">
+					<div><h3>累計正解数</h3><ol id="correct-ranking"><li>読み込み待ち</li></ol></div>
+					<div><h3>連続学習日数</h3><ol id="streak-ranking"><li>読み込み待ち</li></ol></div>
+				</div>
+			</section>
 		</section>
 		<div id="quiz-view" hidden>
 			<div class="quiz-toolbar"><button class="back-button" id="home-button">← トップへ戻る</button></div>
@@ -121,190 +172,8 @@
 		</div>
 	</main>
 	<script src="quizzes.js"></script>
-	<script>
-		const panel = document.querySelector('#quiz');
-		const home = document.querySelector('#home');
-		const quizView = document.querySelector('#quiz-view');
-		const tabs = [...document.querySelectorAll('.tab')];
-		const courseCards = [...document.querySelectorAll('.course-card')];
-		const QUESTION_COUNT = 10;
-		const STATS_KEY = 'kobun-quiz-stats';
-		let kind = 'particles';
-		let index = 0;
-		let score = 0;
-		let answered = false;
-		let sessionQuestions = [];
-
-		const totalQuestions = Object.values(quizzes).reduce((total, questions) => total + questions.length, 0);
-		document.querySelector('#total-count').textContent = `${totalQuestions}問`;
-		const storageMessage = document.querySelector('#storage-message');
-		courseCards.forEach(card => {
-			card.querySelector('.course-meta').textContent = `全${quizzes[card.dataset.startKind].length}問から10問出題`;
-		});
-		tabs.forEach(tab => {
-			tab.textContent = tab.dataset.kind === 'particles' ? '助詞（10問）' : '助動詞（10問）';
-		});
-
-		function createEmptyStats() {
-			return { best: { particles: 0, auxiliaries: 0 }, streak: 0, lastCompletedDate: null };
-		}
-
-		function isValidStats(value) {
-			return value &&
-				value.best &&
-				Number.isInteger(value.best.particles) && value.best.particles >= 0 && value.best.particles <= QUESTION_COUNT &&
-				Number.isInteger(value.best.auxiliaries) && value.best.auxiliaries >= 0 && value.best.auxiliaries <= QUESTION_COUNT &&
-				Number.isInteger(value.streak) && value.streak >= 0 &&
-				(value.lastCompletedDate === null || typeof value.lastCompletedDate === 'string');
-		}
-
-		function showStorageError(action, error) {
-			storageMessage.hidden = false;
-			storageMessage.textContent = `記録の${action}に失敗しました。ブラウザーの保存設定をご確認ください。`;
-			console.error(`クイズ記録の${action}に失敗しました。`, error);
-		}
-
-		function loadStats() {
-			try {
-				const saved = localStorage.getItem(STATS_KEY);
-				if (saved === null) return createEmptyStats();
-				const parsed = JSON.parse(saved);
-				if (isValidStats(parsed)) return parsed;
-				showStorageError('読み込み', new Error('保存データの形式が正しくありません'));
-			} catch (error) {
-				showStorageError('読み込み', error);
-			}
-			return createEmptyStats();
-		}
-
-		const stats = loadStats();
-		const yesterday = new Date();
-		yesterday.setDate(yesterday.getDate() - 1);
-		if (stats.lastCompletedDate !== localDateKey(new Date()) && stats.lastCompletedDate !== localDateKey(yesterday)) {
-			stats.streak = 0;
-		}
-
-		function renderStats() {
-			document.querySelectorAll('[data-best-kind]').forEach(record => {
-				record.textContent = `${stats.best[record.dataset.bestKind]} / ${QUESTION_COUNT}問`;
-			});
-			document.querySelector('#streak-count').textContent = `${stats.streak}日`;
-		}
-
-		function saveStats() {
-			try {
-				localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-				storageMessage.hidden = true;
-			} catch (error) {
-				showStorageError('保存', error);
-			}
-		}
-
-		function localDateKey(date) {
-			const year = date.getFullYear();
-			const month = String(date.getMonth() + 1).padStart(2, '0');
-			const day = String(date.getDate()).padStart(2, '0');
-			return `${year}-${month}-${day}`;
-		}
-
-		function recordCompletion() {
-			stats.best[kind] = Math.max(stats.best[kind], score);
-			const today = localDateKey(new Date());
-			if (stats.lastCompletedDate !== today) {
-				const yesterday = new Date();
-				yesterday.setDate(yesterday.getDate() - 1);
-				stats.streak = stats.lastCompletedDate === localDateKey(yesterday) ? stats.streak + 1 : 1;
-				stats.lastCompletedDate = today;
-			}
-			saveStats();
-			renderStats();
-		}
-
-		function shuffle(items) {
-			const shuffled = [...items];
-			for (let i = shuffled.length - 1; i > 0; i--) {
-				const j = Math.floor(Math.random() * (i + 1));
-				[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-			}
-			return shuffled;
-		}
-
-		function prepareQuestion(question) {
-			const choices = shuffle(question.choices.map((choice, originalIndex) => ({
-				choice,
-				isAnswer: originalIndex === question.answer
-			})));
-			return {
-				...question,
-				choices: choices.map(item => item.choice),
-				answer: choices.findIndex(item => item.isAnswer)
-			};
-		}
-
-		renderStats();
-
-		function render() {
-			if (index >= sessionQuestions.length) {
-				recordCompletion();
-				panel.innerHTML = `<div class="result"><h2>おつかれさまでした！</h2><p>${kind === 'particles' ? '助詞' : '助動詞'}のクイズが終了しました。</p><div class="score">${score} / ${QUESTION_COUNT} 問正解</div><p>このテーマの最高記録：${stats.best[kind]} / ${QUESTION_COUNT} 問</p><p>連続学習：${stats.streak}日</p><button class="primary" id="restart">もう一度挑戦</button></div>`;
-				document.querySelector('#restart').addEventListener('click', startOver);
-				return;
-			}
-			const q = sessionQuestions[index];
-			const highlighted = q.sentence.replace(q.target, `<span class="blank">${q.target}</span>`);
-			panel.innerHTML = `<div class="progress-row"><span>第 ${index + 1} 問 / ${QUESTION_COUNT} 問</span><span>正解 ${score} 問</span></div>
-				<div class="track"><div class="bar" style="width:${(index / QUESTION_COUNT) * 100}%"></div></div>
-				<h2 class="question">${q.ask}</h2><p class="sentence">「${highlighted}」</p>
-				<div class="choices">${q.choices.map((choice, i) => `<button class="choice" data-choice="${i}">${String.fromCharCode(65 + i)}. ${choice}</button>`).join('')}</div>
-				<p class="feedback" id="feedback"></p><div class="actions"><button class="primary" id="next" disabled>${index === QUESTION_COUNT - 1 ? '結果を見る' : '次の問題へ'}</button></div>`;
-			panel.querySelectorAll('.choice').forEach(button => button.addEventListener('click', () => selectAnswer(Number(button.dataset.choice))));
-			document.querySelector('#next').addEventListener('click', () => { index++; answered = false; render(); });
-		}
-
-		function selectAnswer(selected) {
-			if (answered) return;
-			answered = true;
-			const q = sessionQuestions[index];
-			const buttons = panel.querySelectorAll('.choice');
-			buttons.forEach((button, i) => {
-				button.disabled = true;
-				if (i === q.answer) button.classList.add('correct');
-				else if (i === selected) button.classList.add('wrong');
-			});
-			const correct = selected === q.answer;
-			if (correct) score++;
-			document.querySelector('#feedback').innerHTML = `<strong>${correct ? '正解！' : '不正解。正解は「' + q.choices[q.answer] + '」です。'}</strong> ${q.note}`;
-			document.querySelector('#next').disabled = false;
-			panel.querySelector('.progress-row span:last-child').textContent = `正解 ${score} 問`;
-		}
-
-		function startOver() {
-			index = 0;
-			score = 0;
-			answered = false;
-			sessionQuestions = shuffle(quizzes[kind]).slice(0, QUESTION_COUNT).map(prepareQuestion);
-			render();
-		}
-		function showQuiz(selectedKind) {
-			kind = selectedKind;
-			tabs.forEach(tab => {
-				const active = tab.dataset.kind === kind;
-				tab.classList.toggle('active', active);
-				tab.setAttribute('aria-pressed', String(active));
-			});
-			home.hidden = true;
-			quizView.hidden = false;
-			startOver();
-		}
-		function showHome() {
-			quizView.hidden = true;
-			home.hidden = false;
-		}
-		courseCards.forEach(card => card.addEventListener('click', () => showQuiz(card.dataset.startKind)));
-		document.querySelector('#home-button').addEventListener('click', showHome);
-		tabs.forEach(tab => tab.addEventListener('click', () => {
-			showQuiz(tab.dataset.kind);
-		}));
-	</script>
+	<script src="supabase-config.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	<script src="app.js"></script>
 </body>
 </html>
