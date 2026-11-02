@@ -411,14 +411,14 @@ courseCards.forEach(card => card.addEventListener('click', () => showQuiz(card.d
 document.querySelector('#home-button').addEventListener('click', showHome);
 tabs.forEach(tab => tab.addEventListener('click', () => showQuiz(tab.dataset.kind)));
 
-if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+if (!window.SUPABASE_URL || !window.SUPABASE_PUBLISHABLE_KEY) {
 	setAuthMessage('Supabase接続設定が未完了です。SUPABASE_SETUP.mdの手順に沿って設定してください。', true);
 	setRankingMessage('Supabase接続設定後にランキングを表示します');
 } else if (!window.supabase?.createClient) {
 	setAuthMessage('Supabaseクライアントを読み込めませんでした。インターネット接続をご確認ください。', true);
 	setRankingMessage('ランキングを読み込めませんでした');
 } else {
-	supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+	supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_PUBLISHABLE_KEY);
 	supabaseClient.auth.onAuthStateChange((_event, session) => {
 		handleSession(session);
 	});
