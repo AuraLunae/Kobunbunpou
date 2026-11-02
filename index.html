@@ -136,6 +136,17 @@
 		@media (prefers-reduced-motion: reduce) {
 			*, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 		}
+		.portal-card { display: grid; gap: 14px; scroll-margin-top: 24px; }
+		.portal-card .pc-box input { min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); color: var(--ink); letter-spacing: .06em; }
+		.portal-card .pc-box input:focus { border-color: var(--accent); outline: 3px solid rgb(0 113 227 / 18%); }
+		.portal-card .pc-box button { min-height: 44px; padding: 10px 20px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 600; }
+		.portal-card .pc-box button + button { background: transparent; color: var(--accent); }
+		.portal-card .pc-box button:disabled { opacity: .45; cursor: not-allowed; }
+		.portal-confirm { width: min(420px, calc(100% - 40px)); padding: 28px; border: 0; border-radius: 20px; background: var(--paper); color: var(--ink); box-shadow: 0 24px 60px rgb(0 0 0 / 28%); }
+		.portal-confirm::backdrop { background: rgb(0 0 0 / 45%); }
+		.portal-confirm h2 { margin: 0 0 10px; font-size: 1.15rem; }
+		.portal-confirm p { margin: 0; color: var(--muted); }
+		.portal-confirm-actions { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
 	</style>
 </head>
 <body>
@@ -230,6 +241,14 @@
 			<section class="card" id="quiz" aria-live="polite"></section>
 		</div>
 	</main>
+	<dialog id="portal-confirm" class="portal-confirm" aria-labelledby="portal-confirm-title">
+		<h2 id="portal-confirm-title">テンシ ポータルと連携</h2>
+		<p id="portal-confirm-text"></p>
+		<div class="portal-confirm-actions">
+			<button class="primary" type="button" id="portal-confirm-ok">連携する</button>
+			<button class="back-button" type="button" id="portal-confirm-cancel">キャンセル</button>
+		</div>
+	</dialog>
 	<script src="quizzes.js"></script>
 	<script src="supabase-config.js"></script>
 	<script src="portal-config.js"></script>
