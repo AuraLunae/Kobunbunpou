@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<title>Dr.Yの古典文法</title>
+	<meta name="description" content="プリントの問題を、ぜんぶ解いて身につける古典文法クイズ。助動詞の活用・意味・活用形をくり返し確認できます。">
+	<meta name="theme-color" content="#f6f2fb">
+	<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-24 -24 48 48'%3E%3Cg fill='%23ffc3d6' stroke='%232f2745' stroke-width='2.4' stroke-linejoin='round'%3E%3Cpath id='p' d='M0 -3C-9 -9-9 -20-1.5 -21.5L0 -18.5L1.5 -21.5C9 -20 9 -9 0 -3Z'/%3E%3Cpath d='M0 -3C-9 -9-9 -20-1.5 -21.5L0 -18.5L1.5 -21.5C9 -20 9 -9 0 -3Z' transform='rotate(72)'/%3E%3Cpath d='M0 -3C-9 -9-9 -20-1.5 -21.5L0 -18.5L1.5 -21.5C9 -20 9 -9 0 -3Z' transform='rotate(144)'/%3E%3Cpath d='M0 -3C-9 -9-9 -20-1.5 -21.5L0 -18.5L1.5 -21.5C9 -20 9 -9 0 -3Z' transform='rotate(216)'/%3E%3Cpath d='M0 -3C-9 -9-9 -20-1.5 -21.5L0 -18.5L1.5 -21.5C9 -20 9 -9 0 -3Z' transform='rotate(288)'/%3E%3C/g%3E%3Ccircle r='3.2' fill='%23ffd24d' stroke='%232f2745' stroke-width='2'/%3E%3C/svg%3E">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="style.css?v=20261103b">
+</head>
+<body>
+	<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+		<defs>
+			<path id="petal" d="M0 -3C-9 -9-9 -20-1.5 -21.5L0 -18.5L1.5 -21.5C9 -20 9 -9 0 -3Z"/>
+			<symbol id="sakura" viewBox="-24 -24 48 48">
+				<g fill="#ffc3d6" stroke="#2f2745" stroke-width="2.4" stroke-linejoin="round">
+					<use href="#petal"/><use href="#petal" transform="rotate(72)"/><use href="#petal" transform="rotate(144)"/><use href="#petal" transform="rotate(216)"/><use href="#petal" transform="rotate(288)"/>
+				</g>
+				<circle r="3.2" fill="#ffd24d" stroke="#2f2745" stroke-width="2"/>
+			</symbol>
+		</defs>
+	</svg>
+
+	<main class="app" id="app">
+
+		<!-- 読み込み中 -->
+		<section class="view view-loading" id="loading-view">
+			<div class="loading-box">
+				<div id="loading-mascot"></div>
+				<p class="loading-title" id="loading-title">問題を準備しています</p>
+				<p class="loading-sub" id="loading-sub">はじめだけ、すべての問題をダウンロードします。</p>
+				<div class="loading-bar"><div id="loading-fill"></div></div>
+				<button class="btn-ghost" id="loading-retry" type="button" hidden>もう一度ためす</button>
+			</div>
+		</section>
+
+		<!-- ホーム -->
+		<section class="view" id="home-view" hidden>
+			<header class="brand-row">
+				<h1 class="brand"><svg class="brand-mark" aria-hidden="true"><use href="#sakura"/></svg><span>Dr.Yの古典文法</span></h1>
+				<div class="stat-chips" aria-label="学習の記録">
+					<span class="stat-chip"><i class="dot-s a"></i>連続 <b id="stat-streak">0</b>日</span>
+					<span class="stat-chip"><i class="dot-s b"></i>累計 <b id="stat-total">0</b>問</span>
+				</div>
+			</header>
+
+			<section class="hero" aria-labelledby="hero-title">
+				<div class="hero-top">
+					<div class="hero-mascot" id="hero-mascot"></div>
+					<div class="hero-copy">
+						<h2 id="hero-title">全<span id="hero-total">0</span>問に、ぜんぶふれよう</h2>
+						<p class="hero-sub">解いた問題 <b id="hero-touched">0</b> / <span id="hero-total2">0</span></p>
+					</div>
+				</div>
+				<div class="dotmap" id="dotmap" aria-hidden="true"></div>
+				<p class="legend" aria-hidden="true"><span><i class="dot ok"></i>解いた</span><span><i class="dot ng"></i>まちがえた</span><span><i class="dot"></i>まだ</span></p>
+
+				<div class="resume-area" id="resume-area" hidden>
+					<button class="btn-sticker" id="resume-btn" type="button">
+						<span class="btn-label">つづきから</span><span class="btn-count" id="resume-count"></span>
+					</button>
+					<button class="btn-ghost" id="restart-btn" type="button">はじめからやり直す</button>
+				</div>
+			</section>
+
+			<section class="rounds" aria-labelledby="rounds-title">
+				<h2 class="section-title" id="rounds-title">どの回にする？</h2>
+				<div id="rounds"></div>
+				<p class="cta-note">ボタンを押すと、そのステップの問題がいっきに始まります。まだ解いていない問題から出ます。</p>
+			</section>
+
+			<section class="card portal-card" id="portal-card" aria-labelledby="portal-title">
+				<h2 class="section-title" id="portal-title">テンシ ポータルと連携</h2>
+				<p class="portal-lead">連携すると、毎日の回答数がポータルのランキングに載ります。ポータルの「連携する」ボタンからも、かんたんに連携できます。</p>
+				<div id="portal-link"></div>
+			</section>
+
+			<footer class="foot">プリントの問題を、少しずつ増やしています。</footer>
+		</section>
+
+		<!-- クイズ -->
+		<section class="view" id="quiz-view" hidden>
+			<header class="quiz-top">
+				<button class="icon-btn" id="quit-btn" type="button" aria-label="いったんやめる">
+					<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/></svg>
+				</button>
+				<div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="進み具合">
+					<div class="progress-fill" id="progress-fill"></div>
+					<svg class="progress-petal" id="progress-petal" aria-hidden="true"><use href="#sakura"/></svg>
+				</div>
+				<span class="quiz-count" id="quiz-count">1 / 1</span>
+			</header>
+
+			<aside class="passage" id="passage" hidden aria-label="古文">
+				<div class="passage-head">
+					<span class="passage-title" id="passage-title"></span>
+					<span class="passage-hint">スクロールできます</span>
+				</div>
+				<div class="passage-scroll" id="passage-scroll" tabindex="0">
+					<p class="passage-text" id="passage-text"></p>
+					<ol class="notes" id="passage-notes"></ol>
+				</div>
+			</aside>
+
+			<article class="qcard" id="qcard">
+				<div class="q-meta">
+					<span class="chip chip-tag" id="q-tag"></span>
+					<span class="chip chip-new" id="q-new" hidden>はじめての問題</span>
+					<span class="q-ref" id="q-ref"></span>
+				</div>
+				<h2 class="q-prompt" id="q-prompt"></h2>
+				<div class="q-visual" id="q-visual"></div>
+				<div class="choices" id="choices" role="group" aria-label="選択肢"></div>
+				<div class="feedback" id="feedback" hidden aria-live="polite"></div>
+				<div class="fx" id="fx" aria-hidden="true"></div>
+			</article>
+
+			<div class="next-bar" id="next-bar" hidden>
+				<button class="btn-sticker btn-next" id="next-btn" type="button">つぎへ</button>
+			</div>
+		</section>
+
+		<!-- 結果 -->
+		<section class="view" id="result-view" hidden>
+			<div class="result" id="result-box"></div>
+		</section>
+
+	</main>
+
+	<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+	<dialog id="quit-dialog" class="dialog" aria-labelledby="quit-title">
+		<h2 id="quit-title">ここでやめますか？</h2>
+		<p>ここまでの答えは保存されています。あとで、つづきから解けます。</p>
+		<div class="dialog-actions">
+			<button class="btn-sticker small" type="button" id="quit-stay">つづける</button>
+			<button class="btn-ghost" type="button" id="quit-go">ホームにもどる</button>
+		</div>
+	</dialog>
+
+	<dialog id="portal-confirm" class="dialog" aria-labelledby="portal-confirm-title">
+		<h2 id="portal-confirm-title">テンシ ポータルと連携</h2>
+		<p id="portal-confirm-text"></p>
+		<div class="dialog-actions">
+			<button class="btn-sticker small" type="button" id="portal-confirm-ok">連携する</button>
+			<button class="btn-ghost" type="button" id="portal-confirm-cancel">キャンセル</button>
+		</div>
+	</dialog>
+
+	<noscript><p style="padding:24px;font-family:sans-serif">このサイトはJavaScriptを使います。ブラウザの設定で有効にしてください。</p></noscript>
+
+	<script src="portal-config.js?v=20261103a"></script>
+	<script src="portal-client.js?v=20261103a"></script>
+	<script src="app.js?v=20261103b"></script>
+</body>
+</html>
