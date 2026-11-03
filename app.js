@@ -489,17 +489,16 @@ async function runPortalLinkDialog(key) {
 	const text = document.querySelector('#portal-confirm-text');
 	const ok = document.querySelector('#portal-confirm-ok');
 	const cancel = document.querySelector('#portal-confirm-cancel');
-	let message = 'テンシ ポータルと連携しますか？ 送られるのは日ごとの回答数だけで、ポータルのランキングに反映されます。';
-	try {
-		const status = await window.PortalClient.linkStatus();
-		if (status && status.linked) {
-			message = `この端末はすでに「${status.nickname || ''}」として連携しています。このキーで連携し直しますか？`;
-		}
-	} catch (error) {
+	const defaultMessage = 'テンシ ポータルと連携しますか？ 送られるのは日ごとの回答数だけで、ポータルのランキングに反映されます。';
+	const statusPromise = window.PortalClient.linkStatus().catch(error => {
 		console.error('連携の状態を確認できませんでした。', error);
-	}
+		return null;
+	});
+	const linkedMessage = status => status && status.linked
+		? `この端末はすでに「${status.nickname || ''}」として連携しています。このキーで連携し直しますか？`
+		: defaultMessage;
 	if (typeof dialog.showModal !== 'function') {
-		if (!window.confirm(message)) return;
+		if (!window.confirm(linkedMessage(await statusPromise))) return;
 		try {
 			await window.PortalClient.link(key);
 			window.PortalClient.syncNow();
@@ -509,12 +508,19 @@ async function runPortalLinkDialog(key) {
 		}
 		return;
 	}
-	text.textContent = message;
+	// 先にダイアログを出す（状態の確認を待たない）
+	let busy = false;
+	text.textContent = defaultMessage;
 	ok.hidden = false;
-	ok.disabled = false;
+	ok.disabled = true;
 	ok.textContent = '連携する';
 	cancel.disabled = false;
 	cancel.textContent = 'キャンセル';
+	statusPromise.then(status => {
+		if (busy || !dialog.open) return;
+		text.textContent = linkedMessage(status);
+		ok.disabled = false;
+	});
 	await new Promise(resolve => {
 		const finish = () => {
 			dialog.removeEventListener('close', finish);
@@ -525,6 +531,7 @@ async function runPortalLinkDialog(key) {
 		dialog.addEventListener('close', finish);
 		cancel.onclick = () => dialog.close();
 		ok.onclick = async () => {
+			busy = true;
 			ok.disabled = true;
 			cancel.disabled = true;
 			text.textContent = '連携しています…';
@@ -550,7 +557,12 @@ async function handlePortalHash() {
 	if (match) {
 		const key = match[1];
 		history.replaceState(null, '', location.pathname + location.search);   // キーをURLに残さない
-		await runPortalLinkDialog(key);
+		try {
+			await runPortalLinkDialog(key);
+		} catch (error) {
+			console.error('ポータル連携の確認画面でエラーが出ました。', error);
+			window.alert(`ポータル連携を始められませんでした：${error.message}`);
+		}
 		return;
 	}
 	if (location.hash === '#portal-link') openPortalCard();
@@ -573,4 +585,8 @@ try {
 } catch (error) {
 	console.error('ポータル連携を開始できませんでした。', error);
 	document.querySelector('#portal-card').hidden = true;
+	if (location.hash.startsWith('#portal-link')) {
+		history.replaceState(null, '', location.pathname + location.search);
+		window.alert(`ポータル連携を開始できませんでした：${error.message}`);
+	}
 }
