@@ -10,11 +10,14 @@ window.PORTAL_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_lfvqV1MdT5eioPyLOnM36Q_
 
     var style = document.createElement('style');
     style.textContent = [
-      '.app-nav{display:flex;justify-content:center;gap:8px;padding:10px 16px;border-bottom:1px solid #d2d2d7;background:var(--paper,#fff);font:500 .9rem/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}',
-      '.app-nav a{padding:8px 14px;border-radius:999px;color:var(--accent,#0071e3);text-decoration:none}',
-      '.app-nav a[aria-current=page]{background:var(--soft,#eaf3ff);font-weight:700}',
-      '.app-nav a:focus-visible{outline:3px solid var(--accent,#0071e3);outline-offset:2px}',
-      '@media(max-width:380px){.app-nav{gap:2px;padding:8px}.app-nav a{padding:8px 10px}}'
+      ':root{--nav-bg:rgba(255,255,255,0.72);--nav-border:rgba(0,0,0,0.08);--nav-pill:rgba(10,132,255,0.08);--nav-text:#1d1d1f;--nav-muted:#5f6368;}',
+      '@media (prefers-color-scheme: dark){:root{--nav-bg:rgba(28,28,30,0.72);--nav-border:rgba(255,255,255,0.12);--nav-pill:rgba(99,170,255,0.2);--nav-text:#f5f5f7;--nav-muted:#a1a1a6;}}',
+      '.app-nav{position:sticky;top:0;z-index:20;display:flex;justify-content:center;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--nav-border);background:var(--nav-bg);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 1px 0 rgba(0,0,0,.02)}',
+      '.app-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border-radius:999px;color:var(--nav-text);text-decoration:none;font-size:.9rem;font-weight:500;letter-spacing:-.01em;transition:background-color .16s ease,transform .16s ease}',
+      '.app-nav a:hover{background:rgba(142,142,147,.12)}',
+      '.app-nav a[aria-current=page]{background:var(--nav-pill);color:#0a84ff;font-weight:600}',
+      '.app-nav a:focus-visible{outline:3px solid rgba(10,132,255,.35);outline-offset:2px}',
+      '@media (max-width: 480px){.app-nav{gap:6px;padding:8px 10px}.app-nav a{min-height:32px;padding:7px 10px;font-size:.82rem}}'
     ].join('');
     document.head.appendChild(style);
 
